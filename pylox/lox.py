@@ -1,9 +1,13 @@
 from os import PathLike
 from pathlib import Path
+from pprint import PrettyPrinter
 from sys import stderr
 from typing import Union
 
 from .scanner import Scanner
+
+
+pp = PrettyPrinter(indent=4)
 
 
 class Lox:
@@ -46,13 +50,13 @@ class Lox:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
-        print(tokens)
+        pp.pprint(tokens)
 
     def error(self, line: int, message: str):
         self.report(line, "", message)
 
     def report(self, line: int, where: str, message: str):
-        print(f"[line {line}] Error {where}: {message}", file=stderr)
+        print(f"[line {line}] Error{' ' + where if where else ''}: {message}", file=stderr)
         self.had_error = True
 
 class LoxException(Exception):

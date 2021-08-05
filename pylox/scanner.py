@@ -73,6 +73,18 @@ class Scanner:
             if self.match("/"):
                 while self.peek() != "\n" and not self.is_at_end():
                     self.advance()
+            elif self.match("*"):
+                while self.peek() + self.peek(2) != "*/" and not self.is_at_end():
+                    if self.peek() == "\n":
+                        self.line += 1
+                    self.advance()
+
+                if self.is_at_end():
+                    raise lox.LoxException(self.line, "Unterminated comment.")
+
+                # two more times to consume the closing */
+                self.advance()
+                self.advance()
             else:
                 self.add_token(TokenType.SLASH)
         elif c in (" ", "\r", "\t"):
