@@ -1,13 +1,10 @@
 from os import PathLike
 from pathlib import Path
-from pprint import PrettyPrinter
 from sys import stderr
 from typing import Union
 
 from .scanner import Scanner
-
-
-pp = PrettyPrinter(indent=4)
+from .dot import DotDiagram
 
 
 class Lox:
@@ -50,7 +47,7 @@ class Lox:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
-        pp.pprint(tokens)
+        print(DotDiagram.from_list(tokens))
 
     def error(self, line: int, message: str):
         self.report(line, "", message)
