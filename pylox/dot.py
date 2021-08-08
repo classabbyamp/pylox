@@ -4,12 +4,15 @@ from .token import Token
 HEADERS = """\
     node [ shape = Mrecord ];
     edge [ dir = none ];
+    splines = true;
 """
 
 
 class DotDiagram:
     def __init__(self):
-        pass
+        self.tokens = None
+        self.tree = None
+        self.root = None
 
     @classmethod
     def from_list(cls, tokens: list[Token]):
@@ -19,29 +22,24 @@ class DotDiagram:
         return obj
 
     @classmethod
-    def from_tree(cls, tokens):
+    def from_tree(cls, root: int, tree: list[str]):
         obj = cls()
-        obj.tokens = tokens
+        obj.tokens = tree
         obj.tree = True
+        obj.root = root
         return obj
 
     def __str__(self) -> str:
         if self.tree:
-            toks = ""
+            toks = "\n".join("    " + ln for ln in self.tokens)
         else:
             toks = "\n".join("    " + token_to_dot(tok) for tok in self.tokens)
-        return "digraph G {\n" + HEADERS + "\n" + toks + "\n" + "}"
-
-
-def token_to_dot(self) -> str:
-    if self.literal is not None:
-        return f"n{id(self):x} [ label = <{'{'}{escape(self.type.name)}|{escape(repr(self.literal))}{'}'}> ];"
-    return f"n{id(self):x} [ label = <{'{'}{escape(self.type.name)}{'}'}> ];"
+        return "digraph G {\n" + HEADERS + f"    root = n{self.root:x};" + "\n\n" + toks + "\n" + "}"
 
 
 def escape(inp: str) -> str:
     substitutions = {
-        "&":  "&amp;", 
+        "&":  "&amp;",
         '"':  "&quot;",
         "]":  "&#x5D;",
         "<":  "&#x3C;",
@@ -56,3 +54,13 @@ def escape(inp: str) -> str:
         "\v": "\\v",
     }
     return inp.translate(inp.maketrans(substitutions))
+
+
+def token_to_dot(tok) -> str:
+    if tok.literal is not None:
+        return f"n{id(tok):x} [ label = <{'{'}{escape(tok.type.name)}|{escape(repr(tok.literal))}{'}'}> ];"
+    return f"n{id(tok):x} [ label = <{'{'}{escape(tok.type.name)}{'}'}> ];"
+
+
+def expr_to_dot(self, expr) -> str:
+    ...
