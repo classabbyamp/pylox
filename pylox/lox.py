@@ -14,14 +14,14 @@ class Lox:
         self.had_error = False
 
     @classmethod
-    def run_file(cls, path: Union[str, PathLike]):
+    def run_file(cls, path: Union[str, PathLike], dot=Union[str, PathLike]):
         obj = cls()
 
         path = Path(path)
         with path.open() as f:
             script = f.read()
         try:
-            obj.run(script)
+            obj.run(script, dot=dot)
         except LoxException as e:
             obj.print_error(e)
 
@@ -45,7 +45,16 @@ class Lox:
 
             obj.had_error = False
 
-    def run(self, source: str):
+    @classmethod
+    def run_inline(cls, cmd: str, dot=Union[str, PathLike]):
+        obj = cls()
+
+        try:
+            obj.run(cmd, dot=dot)
+        except LoxException as e:
+            obj.print_error(e)
+
+    def run(self, source: str, dot: Union[str, PathLike]):
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
@@ -53,7 +62,9 @@ class Lox:
         expression = parser.parse()
 
         if expression is not None:
-            print(DotDiagram.from_tree(id(expression), expression.dot()))
+            if dot:
+                Path(dot).write_text(str(DotDiagram.from_tree(id(expression), expression.dot())))
+            print(expression)
 
     def print_error(self, err: LoxException):
         print(err, file=stderr)

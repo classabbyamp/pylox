@@ -53,7 +53,7 @@ def escape(inp: str) -> str:
         "\t": "\\t",
         "\v": "\\v",
     }
-    return inp.translate(inp.maketrans(substitutions))
+    return inp.translate(inp.maketrans(substitutions))  # type: ignore
 
 
 def token_to_dot(tok) -> str:

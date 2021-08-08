@@ -68,7 +68,5 @@ class Token:
         return f"Token({self.type}, {self.lexeme}, {self.literal})"
 
     def __repr__(self) -> str:
-        type_ = type(self)
-        module = type_.__module__
-        qualname = type_.__qualname__
-        return f"<{module}.{qualname} object at {hex(id(self))}, type={self.type.name}, lexeme={self.lexeme!r}, literal={self.literal!r}, line={self.line}>"
+        return (f"{type(self).__name__}(type={self.type.name}, lexeme={self.lexeme!r}, literal={self.literal!r}, "
+                f"line={self.line})")
