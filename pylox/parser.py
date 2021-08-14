@@ -66,7 +66,7 @@ class Parser:
             return Literal(True)
         if self.match(TokenType.NIL):
             return Literal(None)
-        if self.match(TokenType.NUMBER, TokenType.STRING):
+        if self.match(TokenType.NUMBER, TokenType.NAN, TokenType.INFINITY, TokenType.STRING):
             return Literal(self.previous().literal)
         if self.match(TokenType.LEFT_PAREN):
             expr = self.expression()

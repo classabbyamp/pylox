@@ -44,6 +44,8 @@ class TokenType(Enum):
     FOR = auto()
     IF = auto()
     NIL = auto()
+    NAN = auto()
+    INFINITY = auto()
     OR = auto()
 
     PRINT = auto()

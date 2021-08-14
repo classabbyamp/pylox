@@ -1,6 +1,6 @@
 from typing import Any
 
-from . import lox
+from .exceptions import LoxParseError
 from .token import Token, TokenType
 
 
@@ -28,6 +28,8 @@ class Scanner:
             "true": TokenType.TRUE,
             "var": TokenType.VAR,
             "while": TokenType.WHILE,
+            "nan": TokenType.NAN,
+            "inf": TokenType.INFINITY,
         }
 
     def scan_tokens(self) -> list[Token]:
@@ -38,7 +40,7 @@ class Scanner:
         self.tokens.append(Token(TokenType.EOF, "", self.line))
         return self.tokens
 
-    def scan_token(self) -> Token:
+    def scan_token(self) -> Token:  # type: ignore
         c = self.advance()
 
         if c == "(":
@@ -80,7 +82,7 @@ class Scanner:
                     self.advance()
 
                 if self.is_at_end():
-                    raise lox.LoxException(self.line, "Unterminated comment.")
+                    raise LoxParseError(self.line, "Unterminated comment.")
 
                 # two more times to consume the closing */
                 self.advance()
@@ -99,7 +101,7 @@ class Scanner:
             elif isalpha(c):
                 self.identifier()
             else:
-                raise lox.LoxException(self.line, "Unexepected character.")
+                raise LoxParseError(self.line, "Unexepected character.")
 
     def is_at_end(self) -> bool:
         return self.current >= len(self.source)
@@ -131,7 +133,7 @@ class Scanner:
             self.advance()
 
         if self.is_at_end():
-            raise lox.LoxException(self.line, "Unterminated string.")
+            raise LoxParseError(self.line, "Unterminated string.")
 
         self.advance()
         self.add_token(TokenType.STRING, self.source[self.start+1:self.current-1])
@@ -143,16 +145,32 @@ class Scanner:
             self.advance()
             while isdigit(self.peek()):
                 self.advance()
+        if self.peek() == "e" and isdigit(self.peek(2)):
+            self.advance()
+            while isdigit(self.peek()):
+                self.advance()
+        if self.peek() == "e" and self.peek(2) in ("+", "-") and isdigit(self.peek(3)):
+            self.advance()
+            self.advance()
+            while isdigit(self.peek()):
+                self.advance()
         try:
             self.add_token(TokenType.NUMBER, float(self.source[self.start:self.current]))
         except ValueError:
-            raise lox.LoxException(self.line, "Unable to parse number.")
+            raise LoxParseError(self.line, "Unable to parse number.")
 
     def identifier(self):
         while isalnum(self.peek()):
             self.advance()
 
-        self.add_token(self.keywords.get(self.source[self.start:self.current], TokenType.IDENTIFIER))
+        type_ = self.keywords.get(self.source[self.start:self.current], TokenType.IDENTIFIER)
+
+        if type_ == TokenType.NAN:
+            self.add_token(type_, float("nan"))
+        elif type_ == TokenType.INFINITY:
+            self.add_token(type_, float("inf"))
+        else:
+            self.add_token(type_)
 
     def add_token(self, type_: TokenType, literal: Any = None):
         text = self.source[self.start:self.current]

@@ -5,6 +5,8 @@ from typing import Union
 
 from .scanner import Scanner
 from .parser import Parser
+from .grammar import interpret
+from .interpreter import to_str
 from .dot import DotDiagram
 from .exceptions import LoxException
 
@@ -14,7 +16,7 @@ class Lox:
         self.had_error = False
 
     @classmethod
-    def run_file(cls, path: Union[str, PathLike], dot=Union[str, PathLike]):
+    def run_file(cls, path: Union[str, PathLike], dot: Union[str, PathLike] = None):
         obj = cls()
 
         path = Path(path)
@@ -46,7 +48,7 @@ class Lox:
             obj.had_error = False
 
     @classmethod
-    def run_inline(cls, cmd: str, dot=Union[str, PathLike]):
+    def run_inline(cls, cmd: str, dot: Union[str, PathLike] = None):
         obj = cls()
 
         try:
@@ -54,7 +56,7 @@ class Lox:
         except LoxException as e:
             obj.print_error(e)
 
-    def run(self, source: str, dot: Union[str, PathLike]):
+    def run(self, source: str, dot: Union[str, PathLike] = None):
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
@@ -64,7 +66,11 @@ class Lox:
         if expression is not None:
             if dot:
                 Path(dot).write_text(str(DotDiagram.from_tree(id(expression), expression.dot())))
-            print(expression)
+            else:
+                try:
+                    print(to_str(interpret(expression)))
+                except LoxException as e:
+                    self.print_error(e)
 
     def print_error(self, err: LoxException):
         print(err, file=stderr)
