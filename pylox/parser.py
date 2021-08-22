@@ -1,8 +1,8 @@
 from typing import Optional
 
-from .exceptions import LoxSyntaxError
-from .grammar import Expr, Binary, Unary, Literal, Grouping
-from .token import Token, TokenType
+from .util.exceptions import LoxSyntaxError
+from .grammar.expression import Expr, Binary, Unary, Literal, Grouping
+from .grammar.token import Token, TokenType
 
 
 class Parser:

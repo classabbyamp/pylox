@@ -1,4 +1,4 @@
-from .token import Token, TokenType
+from ..grammar.token import Token, TokenType
 
 
 class LoxException(Exception):

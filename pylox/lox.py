@@ -5,10 +5,10 @@ from typing import Union
 
 from .scanner import Scanner
 from .parser import Parser
-from .grammar import interpret
-from .interpreter import to_str
-from .dot import DotDiagram
-from .exceptions import LoxException
+from .interpreter import interpret
+from .util.helpers import to_str
+from .util.dot import DotDiagram
+from .util.exceptions import LoxException
 
 
 class Lox:
@@ -65,7 +65,7 @@ class Lox:
 
         if expression is not None:
             if dot:
-                Path(dot).write_text(str(DotDiagram.from_tree(id(expression), expression.dot())))
+                Path(dot).write_text(str(DotDiagram(id(expression), expression.dot())))
             else:
                 try:
                     print(to_str(interpret(expression)))

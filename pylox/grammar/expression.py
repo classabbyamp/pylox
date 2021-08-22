@@ -1,38 +1,18 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from math import nan
 from typing import Any, Union
 
-from .dot import escape, token_to_dot
+from ..util.dot import DotMixin
 from .token import Token, TokenType
-from .exceptions import LoxRuntimeError
-from .interpreter import is_truthy, is_equal, check_num_operand
+from ..util.exceptions import LoxRuntimeError
+from ..util.helpers import is_truthy, is_equal, check_num_operand
 
 
-class Expr(ABC):
-    def dot(self, root: bool = True) -> list[str]:
-        output = []
-        if root:
-            output.append(f"n{id(self):x} [ label = <{escape(type(self).__name__)}> ];")
-        for field in fields(self):
-            val = getattr(self, field.name)
-            if isinstance(val, Expr):
-                output.append(f"n{id(val):x} [ label = <{escape(type(val).__name__)}> ];")
-                output += val.dot()
-            elif isinstance(val, Token):
-                output.append(token_to_dot(val))
-            else:
-                output.append(f"n{id(val):x} [ label = <{escape(str(val)) if val is not None else 'nil'}> ];")
-            output.append(f"n{id(self):x} -> n{id(val):x}")
-        return output
-
+class Expr(ABC, DotMixin):
     @abstractmethod
     def eval(self):
         pass
-
-
-def interpret(expression: Expr) -> Any:
-    return expression.eval()
 
 
 @dataclass

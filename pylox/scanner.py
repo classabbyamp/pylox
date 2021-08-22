@@ -1,7 +1,7 @@
 from typing import Any
 
-from .exceptions import LoxParseError
-from .token import Token, TokenType
+from .util.exceptions import LoxParseError
+from .grammar.token import Token, TokenType
 
 
 class Scanner:
