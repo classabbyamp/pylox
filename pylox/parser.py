@@ -1,8 +1,8 @@
-from typing import Optional
-
 from .util.exceptions import LoxSyntaxError
 from .grammar.expression import Expr, Binary, Unary, Literal, Grouping
+from .grammar.statement import Stmt, Print, Expression
 from .grammar.token import Token, TokenType
+from .grammar.literals import LoxBool, LoxNil
 
 
 class Parser:
@@ -10,8 +10,31 @@ class Parser:
         self.tokens = tokens
         self.current = 0
 
-    def parse(self) -> Optional[Expr]:
-        return self.expression()
+    def parse(self) -> list[Stmt]:
+        statements = []
+        while not self.is_at_end():
+            statements.append(self.statement())
+        return statements
+
+    # !##### STATEMENTS #####!
+
+    def statement(self) -> Stmt:
+        if self.match(TokenType.PRINT):
+            return self.print_statement()
+
+        return self.expression_statement()
+
+    def print_statement(self) -> Print:
+        value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
+        return Print(value)
+
+    def expression_statement(self) -> Expression:
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
+        return Expression(expr)
+
+    # !##### EXPRESSIONS #####!
 
     def expression(self) -> Expr:
         return self.equality()
@@ -61,11 +84,11 @@ class Parser:
 
     def primary(self) -> Expr:
         if self.match(TokenType.FALSE):
-            return Literal(False)
+            return Literal(LoxBool(False))
         if self.match(TokenType.TRUE):
-            return Literal(True)
+            return Literal(LoxBool(True))
         if self.match(TokenType.NIL):
-            return Literal(None)
+            return Literal(LoxNil())
         if self.match(TokenType.NUMBER, TokenType.NAN, TokenType.INFINITY, TokenType.STRING):
             return Literal(self.previous().literal)
         if self.match(TokenType.LEFT_PAREN):
@@ -75,7 +98,7 @@ class Parser:
 
         raise LoxSyntaxError(self.peek(), "Expected expression.")
 
-    # * Utility methods * #
+    # !##### UTILITY #####!
 
     def match(self, *types: TokenType) -> bool:
         for type in types:

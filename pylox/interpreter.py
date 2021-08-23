@@ -1,7 +1,6 @@
-from typing import Any
-
-from .grammar.expression import Expr
+from .grammar.statement import Stmt
 
 
-def interpret(expression: Expr) -> Any:
-    return expression.eval()
+def interpret(statements: list[Stmt]):
+    for stmt in statements:
+        stmt.eval()

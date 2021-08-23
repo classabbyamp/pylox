@@ -3,13 +3,13 @@ from dataclasses import dataclass
 from math import nan
 from typing import Any, Union
 
-from ..util.dot import DotMixin
+from .literals import LoxBool, LoxNil
 from .token import Token, TokenType
 from ..util.exceptions import LoxRuntimeError
 from ..util.helpers import is_truthy, is_equal, check_num_operand
 
 
-class Expr(ABC, DotMixin):
+class Expr(ABC):
     @abstractmethod
     def eval(self):
         pass
@@ -76,7 +76,7 @@ class Grouping(Expr):
 
 @dataclass
 class Literal(Expr):
-    value: Any
+    value: Union[str, float, LoxBool, LoxNil]
 
     def eval(self) -> Any:
         return self.value

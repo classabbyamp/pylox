@@ -1,5 +1,7 @@
 from enum import Enum, auto
-from typing import Any
+from typing import Union
+
+from .literals import LoxBool, LoxNil
 
 
 class TokenType(Enum):
@@ -60,7 +62,7 @@ class TokenType(Enum):
 
 
 class Token:
-    def __init__(self, type_: TokenType, lexeme: str, line: int, literal: Any = None):
+    def __init__(self, type_: TokenType, lexeme: str, line: int, literal: Union[str, float, LoxBool, LoxNil] = None):
         self.type = type_
         self.lexeme = lexeme
         self.literal = literal

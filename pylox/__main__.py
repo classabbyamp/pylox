@@ -5,8 +5,9 @@ from .lox import Lox
 
 parser = argparse.ArgumentParser(prog="pylox",
                                  description="A Lox interpreter. Run with no arguments to use the REPL.")
-parser.add_argument("-d", "--dot", type=str, required=False, action="store", dest="dot",
-                    help="output a graphviz representation of the AST to the specified file. Does not work for REPL")
+parser.add_argument("-d", "--dot", required=False, default=False, action="store_true", dest="dot",
+                    help=("output a graphviz representation of the AST to filename.dot (for files) or cmd.dot "
+                          "(for inline scripts). Does not work for REPL"))
 group = parser.add_mutually_exclusive_group()
 group.add_argument("-c", type=str, metavar="CMD", dest="cmd", action="store",
                    help="run an inline Lox script")

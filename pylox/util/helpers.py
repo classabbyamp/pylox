@@ -1,13 +1,12 @@
-from typing import Any
+from typing import Any, Union
 
-from .exceptions import LoxRuntimeError
-from ..grammar.token import Token
+from . import exceptions
+from ..grammar import token
+from ..grammar.literals import LoxBool, LoxNil
 
 
-def to_str(obj: Any) -> str:
-    if obj is None:
-        return "nil"
-    elif isinstance(obj, float):
+def to_str(obj: Union[str, float, LoxBool, LoxNil]) -> str:
+    if isinstance(obj, float):
         return f"{obj:g}"
     elif isinstance(obj, str):
         return f'"{obj}"'
@@ -15,7 +14,7 @@ def to_str(obj: Any) -> str:
 
 
 def is_truthy(obj: Any) -> bool:
-    if obj is None:
+    if obj == LoxNil():
         return False
     elif isinstance(obj, bool):
         return obj
@@ -23,13 +22,13 @@ def is_truthy(obj: Any) -> bool:
 
 
 def is_equal(a: Any, b: Any) -> bool:
-    if a is None and b is None:
+    if isinstance(a, LoxNil) and isinstance(b, LoxNil):
         return True
     if type(a) == type(b):
         return a == b
     return False
 
 
-def check_num_operand(operator: Token, *operands: Any):
+def check_num_operand(operator: token.Token, *operands: Any):
     if not all(isinstance(operand, float) for operand in operands):
-        raise LoxRuntimeError(operator, "operand must be a number")
+        raise exceptions.LoxRuntimeError(operator, "operand must be a number")
