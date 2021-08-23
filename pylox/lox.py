@@ -3,7 +3,7 @@ from pathlib import Path
 from sys import stderr
 from typing import Union
 
-from .scanner import Scanner
+from .lexer import Lexer
 from .parser import Parser
 from .interpreter import interpret
 from .util.dot import dot_diagram
@@ -56,7 +56,7 @@ class Lox:
             obj.print_error(e)
 
     def run(self, source: str, dot_file: Path = None):
-        scanner = Scanner(source)
+        scanner = Lexer(source)
         tokens = scanner.scan_tokens()
 
         parser = Parser(tokens)

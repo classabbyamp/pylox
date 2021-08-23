@@ -4,33 +4,35 @@ from .util.exceptions import LoxParseError
 from .grammar.token import Token, TokenType
 
 
-class Scanner:
+KWDS = {
+    "and": TokenType.AND,
+    "class": TokenType.CLASS,
+    "else": TokenType.ELSE,
+    "false": TokenType.FALSE,
+    "for": TokenType.FOR,
+    "fun": TokenType.FUN,
+    "if": TokenType.IF,
+    "nil": TokenType.NIL,
+    "or": TokenType.OR,
+    "print": TokenType.PRINT,
+    "return": TokenType.RETURN,
+    "super": TokenType.SUPER,
+    "this": TokenType.THIS,
+    "true": TokenType.TRUE,
+    "var": TokenType.VAR,
+    "while": TokenType.WHILE,
+    "nan": TokenType.NAN,
+    "inf": TokenType.INFINITY,
+}
+
+
+class Lexer:
     def __init__(self, source: str):
         self.source = source
         self.tokens: list[Token] = []
         self.start = 0
         self.current = 0
         self.line = 1
-        self.keywords = {
-            "and": TokenType.AND,
-            "class": TokenType.CLASS,
-            "else": TokenType.ELSE,
-            "false": TokenType.FALSE,
-            "for": TokenType.FOR,
-            "fun": TokenType.FUN,
-            "if": TokenType.IF,
-            "nil": TokenType.NIL,
-            "or": TokenType.OR,
-            "print": TokenType.PRINT,
-            "return": TokenType.RETURN,
-            "super": TokenType.SUPER,
-            "this": TokenType.THIS,
-            "true": TokenType.TRUE,
-            "var": TokenType.VAR,
-            "while": TokenType.WHILE,
-            "nan": TokenType.NAN,
-            "inf": TokenType.INFINITY,
-        }
 
     def scan_tokens(self) -> list[Token]:
         while not self.is_at_end():
@@ -163,7 +165,7 @@ class Scanner:
         while isalnum(self.peek()):
             self.advance()
 
-        type_ = self.keywords.get(self.source[self.start:self.current], TokenType.IDENTIFIER)
+        type_ = KWDS.get(self.source[self.start:self.current], TokenType.IDENTIFIER)
 
         if type_ == TokenType.NAN:
             self.add_token(type_, float("nan"))
