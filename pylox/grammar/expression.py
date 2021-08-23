@@ -21,7 +21,7 @@ class Binary(Expr):
     operator: Token
     right: Expr
 
-    def eval(self) -> Union[float, str, bool, None]:
+    def eval(self) -> Union[float, str, LoxBool, LoxNil]:
         left = self.left.eval()
         right = self.right.eval()
 
@@ -47,23 +47,23 @@ class Binary(Expr):
 
         elif self.operator.type is TokenType.GREATER:
             check_num_operand(self.operator, left, right)
-            return left > right
+            return LoxBool(left > right)
         elif self.operator.type is TokenType.GREATER_EQUAL:
             check_num_operand(self.operator, left, right)
-            return left >= right
+            return LoxBool(left >= right)
         elif self.operator.type is TokenType.LESS:
             check_num_operand(self.operator, left, right)
-            return left < right
+            return LoxBool(left < right)
         elif self.operator.type is TokenType.LESS_EQUAL:
             check_num_operand(self.operator, left, right)
-            return left <= right
+            return LoxBool(left <= right)
 
         elif self.operator.type is TokenType.BANG_EQUAL:
             return not is_equal(left, right)
         elif self.operator.type is TokenType.EQUAL_EQUAL:
             return is_equal(left, right)
 
-        return None
+        return LoxNil()
 
 
 @dataclass

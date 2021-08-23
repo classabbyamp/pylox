@@ -1,2 +1,3 @@
 mypy
 flake8
+-r tests/requirements.txt

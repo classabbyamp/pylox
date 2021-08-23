@@ -21,12 +21,12 @@ def is_truthy(obj: Any) -> bool:
     return True
 
 
-def is_equal(a: Any, b: Any) -> bool:
+def is_equal(a: Any, b: Any) -> LoxBool:
     if isinstance(a, LoxNil) and isinstance(b, LoxNil):
-        return True
+        return LoxBool(True)
     if type(a) == type(b):
-        return a == b
-    return False
+        return LoxBool(a == b)
+    return LoxBool(False)
 
 
 def check_num_operand(operator: token.Token, *operands: Any):
