@@ -5,7 +5,7 @@ from typing import Union
 
 from .lexer import Lexer
 from .parser import Parser
-from .interpreter import interpret
+from .interpreter import Interpreter
 from .util.dot import dot_diagram
 from .util.exceptions import LoxException
 
@@ -13,6 +13,8 @@ from .util.exceptions import LoxException
 class Lox:
     def __init__(self):
         self.had_error = False
+        self.interpreter = Interpreter()
+        self.repl = False
 
     @classmethod
     def run_file(cls, path: Union[str, PathLike], dot: bool = False):
@@ -30,8 +32,10 @@ class Lox:
             raise SystemExit(65)
 
     @classmethod
-    def run_prompt(cls):
+    def run_repl(cls):
         obj = cls()
+
+        obj.repl = True
 
         while True:
             try:
@@ -59,14 +63,14 @@ class Lox:
         scanner = Lexer(source)
         tokens = scanner.scan_tokens()
 
-        parser = Parser(tokens)
+        parser = Parser(tokens, repl=self.repl)
         stmts = parser.parse()
 
         if stmts:
             if dot_file is not None:
                 dot_file.write_text(dot_diagram(stmts[0], stmts))
             try:
-                interpret(stmts)
+                self.interpreter.interpret(stmts)
             except LoxException as e:
                 self.print_error(e)
 

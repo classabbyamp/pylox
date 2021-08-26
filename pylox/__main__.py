@@ -22,6 +22,6 @@ try:
     elif args.cmd:
         Lox.run_inline(cmd=args.cmd, dot=args.dot)
     else:
-        Lox.run_prompt()
+        Lox.run_repl()
 except KeyboardInterrupt:
     raise SystemExit(130)

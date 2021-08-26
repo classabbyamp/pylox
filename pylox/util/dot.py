@@ -2,7 +2,7 @@ from dataclasses import fields
 from typing import Union
 
 from ..grammar import token, expr, stmt
-from .helpers import to_str
+from .helpers import to_repr
 
 
 HEADERS = """\
@@ -46,7 +46,7 @@ def dot(obj: Union[expr.Expr, stmt.Stmt], root: bool = True) -> list[str]:
                               f"[ label = <{'{'}{escape(val.type.name)}|{escape(repr(val.literal))}{'}'}> ];")
             output.append(f"n{id(val):x} [ label = <{'{'}{escape(val.type.name)}{'}'}> ];")
         else:
-            output.append(f"n{id(val):x} [ label = <{escape(to_str(val))}> ];")
+            output.append(f"n{id(val):x} [ label = <{escape(to_repr(val))}> ];")
         output.append(f"n{id(obj):x} -> n{id(val):x}")
     return output
 

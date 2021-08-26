@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from math import nan
-from typing import Any, Union
 
-from .literals import LoxBool, LoxNil
+from .literals import LoxBool, LoxNil, OptAnyLiteral, AnyLiteral, NotStr
 from .token import Token, TokenType
 from ..util.exceptions import LoxRuntimeError
 from ..util.helpers import is_truthy, is_equal, check_num_operand
+from ..env import Env
 
 
 class Expr(ABC):
     @abstractmethod
-    def eval(self):
+    def eval(self, env: Env):
         pass
 
 
@@ -21,9 +21,9 @@ class Binary(Expr):
     operator: Token
     right: Expr
 
-    def eval(self) -> Union[float, str, LoxBool, LoxNil]:
-        left = self.left.eval()
-        right = self.right.eval()
+    def eval(self, env: Env) -> AnyLiteral:
+        left = self.left.eval(env)
+        right = self.right.eval(env)
 
         if self.operator.type is TokenType.MINUS:
             check_num_operand(self.operator, left, right)
@@ -70,15 +70,15 @@ class Binary(Expr):
 class Grouping(Expr):
     expression: Expr
 
-    def eval(self) -> Any:
-        return self.expression.eval()
+    def eval(self, env: Env) -> AnyLiteral:
+        return self.expression.eval(env)
 
 
 @dataclass
 class Literal(Expr):
-    value: Union[str, float, LoxBool, LoxNil]
+    value: AnyLiteral
 
-    def eval(self) -> Any:
+    def eval(self, env: Env) -> AnyLiteral:
         return self.value
 
 
@@ -87,12 +87,32 @@ class Unary(Expr):
     operator: Token
     right: Expr
 
-    def eval(self) -> Union[float, bool, None]:
-        right = self.right.eval()
+    def eval(self, env: Env) -> NotStr:
+        right = self.right.eval(env)
 
         if self.operator.type is TokenType.BANG:
             return not is_truthy(right)
         elif self.operator.type is TokenType.MINUS:
             check_num_operand(self.operator, right)
             return -right
-        return None
+        return LoxNil()
+
+
+@dataclass
+class Variable(Expr):
+    name: Token
+
+    def eval(self, env: Env) -> OptAnyLiteral:
+        return env[self.name]
+
+
+@dataclass
+class Assign(Expr):
+    name: Token
+    value: Expr
+
+    def eval(self, env: Env) -> AnyLiteral:
+        val = self.value.eval(env)
+
+        env.assign(self.name, val)
+        return val

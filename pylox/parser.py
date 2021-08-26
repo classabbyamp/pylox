@@ -1,43 +1,101 @@
+from typing import Optional
+
 from .util.exceptions import LoxSyntaxError
-from .grammar.expression import Expr, Binary, Unary, Literal, Grouping
-from .grammar.statement import Stmt, Print, Expression
+from .grammar.expression import Expr, Binary, Unary, Literal, Grouping, Variable, Assign
+from .grammar.statement import Stmt, Print, Repr, Block, Expression, Var
 from .grammar.token import Token, TokenType
 from .grammar.literals import LoxBool, LoxNil
 
 
 class Parser:
-    def __init__(self, tokens: list[Token]):
+    def __init__(self, tokens: list[Token], repl: bool = False):
         self.tokens = tokens
+        self.repl = repl
+
         self.current = 0
 
     def parse(self) -> list[Stmt]:
         statements = []
         while not self.is_at_end():
-            statements.append(self.statement())
+            statements.append(self.declaration())
         return statements
 
     # !##### STATEMENTS #####!
 
+    def declaration(self) -> Stmt:
+        try:
+            if self.match(TokenType.VAR):
+                return self.var_declaration()
+
+            return self.statement()
+        except LoxSyntaxError as e:
+            self.sync()
+            raise e
+
+    def var_declaration(self) -> Stmt:
+        name = self.consume(TokenType.IDENTIFIER, "Expected variable name.")
+        initialiser: Optional[Expr] = None
+
+        if self.match(TokenType.EQUAL):
+            initialiser = self.expression()
+        if (self.repl and self.peek().type != TokenType.EOF) or not self.repl:
+            self.consume(TokenType.SEMICOLON, "Expected ';' after variable declaration.")
+        return Var(name, initialiser)
+
     def statement(self) -> Stmt:
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        elif self.match(TokenType.REPR):
+            return self.repr_statement()
+        elif self.match(TokenType.LEFT_BRACE):
+            return Block(self.block())
 
         return self.expression_statement()
 
+    def block(self) -> list[Stmt]:
+        statements = []
+
+        while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
+            statements.append(self.declaration())
+        self.consume(TokenType.RIGHT_BRACE, "Expected '}' after block.")
+        return statements
+
     def print_statement(self) -> Print:
         value = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
+        if (self.repl and self.peek().type != TokenType.EOF) or not self.repl:
+            self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
         return Print(value)
+
+    def repr_statement(self) -> Repr:
+        value = self.expression()
+        if (self.repl and self.peek().type != TokenType.EOF) or not self.repl:
+            self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
+        return Repr(value)
 
     def expression_statement(self) -> Expression:
         expr = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
+        if (self.repl and self.peek().type != TokenType.EOF) or not self.repl:
+            self.consume(TokenType.SEMICOLON, "Expected ';' after value.")
         return Expression(expr)
 
     # !##### EXPRESSIONS #####!
 
     def expression(self) -> Expr:
-        return self.equality()
+        return self.assignment()
+
+    def assignment(self) -> Expr:
+        expr = self.equality()
+
+        if self.match(TokenType.EQUAL):
+            equals = self.previous()
+            value = self.assignment()
+
+            if isinstance(expr, Variable):
+                name = expr.name
+                return Assign(name, value)
+
+            raise LoxSyntaxError(equals, "Invalid assignment target.")
+        return expr
 
     def equality(self) -> Expr:
         expr = self.comparison()
@@ -90,7 +148,10 @@ class Parser:
         if self.match(TokenType.NIL):
             return Literal(LoxNil())
         if self.match(TokenType.NUMBER, TokenType.NAN, TokenType.INFINITY, TokenType.STRING):
-            return Literal(self.previous().literal)
+            if (lit := self.previous().literal) is not None:
+                return Literal(lit)
+        if self.match(TokenType.IDENTIFIER):
+            return Variable(self.previous())
         if self.match(TokenType.LEFT_PAREN):
             expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expected ')' after expression.")

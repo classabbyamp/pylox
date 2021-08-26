@@ -15,6 +15,7 @@ KWDS = {
     "nil": TokenType.NIL,
     "or": TokenType.OR,
     "print": TokenType.PRINT,
+    "repr": TokenType.REPR,
     "return": TokenType.RETURN,
     "super": TokenType.SUPER,
     "this": TokenType.THIS,

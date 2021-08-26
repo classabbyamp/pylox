@@ -51,6 +51,7 @@ class TokenType(Enum):
     OR = auto()
 
     PRINT = auto()
+    REPR = auto()
     RETURN = auto()
     SUPER = auto()
     THIS = auto()

@@ -1,3 +1,6 @@
+from typing import Union, Optional
+
+
 class LoxBool:
     def __init__(self, value: bool = False):
         self.value = value
@@ -23,3 +26,10 @@ class LoxNil:
 
     def __eq__(self, o: object) -> bool:
         return o is None
+
+
+AnyLiteral = Union[str, float, LoxBool, LoxNil]
+
+OptAnyLiteral = Optional[AnyLiteral]
+
+NotStr = Union[float, LoxBool, LoxNil]
