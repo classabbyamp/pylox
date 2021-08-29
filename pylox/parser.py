@@ -1,8 +1,8 @@
 from typing import Optional
 
 from .util.exceptions import LoxSyntaxError
-from .grammar.expression import Expr, Binary, Unary, Literal, Grouping, Variable, Assign
-from .grammar.statement import Stmt, Print, Repr, Block, Expression, Var
+from .grammar.expression import Expr, Binary, Unary, Literal, Grouping, Variable, Assign, Logical
+from .grammar.statement import Stmt, Print, Repr, Block, Expression, Var, If, While
 from .grammar.token import Token, TokenType
 from .grammar.literals import LoxBool, LoxNil
 
@@ -43,14 +43,76 @@ class Parser:
         return Var(name, initialiser)
 
     def statement(self) -> Stmt:
-        if self.match(TokenType.PRINT):
+        if self.match(TokenType.FOR):
+            return self.for_statement()
+        elif self.match(TokenType.IF):
+            return self.if_statement()
+        elif self.match(TokenType.PRINT):
             return self.print_statement()
         elif self.match(TokenType.REPR):
             return self.repr_statement()
+        elif self.match(TokenType.WHILE):
+            return self.while_statement()
         elif self.match(TokenType.LEFT_BRACE):
             return Block(self.block())
 
         return self.expression_statement()
+
+    def for_statement(self) -> Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.")
+
+        if self.match(TokenType.SEMICOLON):
+            initialiser = None
+        elif self.match(TokenType.VAR):
+            initialiser = self.var_declaration()
+        else:
+            initialiser = self.expression_statement()
+
+        if not self.check(TokenType.SEMICOLON):
+            condition = self.expression()
+        else:
+            condition = Literal(LoxBool(True))
+        self.consume(TokenType.SEMICOLON, "Expected ';' after for loop condition.")
+
+        if not self.check(TokenType.RIGHT_PAREN):
+            increment: Optional[Expr] = self.expression()
+        else:
+            increment = None
+
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after for loop declaration.")
+
+        body = self.statement()
+
+        # if there is an increment, do the increment at the end of the loop body
+        if increment is not None:
+            body = Block([body, Expression(increment)])
+
+        # create the loop
+        body = While(condition, body)
+
+        # if the loop variable needs init, do it before the loop
+        if initialiser is not None:
+            body = Block([initialiser, body])
+
+        return body
+
+    def while_statement(self) -> Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition.")
+        body = self.statement()
+
+        return While(condition, body)
+
+    def if_statement(self) -> Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expected ')' after if condition.")
+
+        then_branch = self.statement()
+        else_branch = self.statement() if self.match(TokenType.ELSE) else None
+
+        return If(condition, then_branch, else_branch)
 
     def block(self) -> list[Stmt]:
         statements = []
@@ -84,7 +146,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> Expr:
-        expr = self.equality()
+        expr = self.or_expr()
 
         if self.match(TokenType.EQUAL):
             equals = self.previous()
@@ -95,6 +157,26 @@ class Parser:
                 return Assign(name, value)
 
             raise LoxSyntaxError(equals, "Invalid assignment target.")
+        return expr
+
+    def or_expr(self) -> Expr:
+        expr = self.and_expr()
+
+        while self.match(TokenType.OR):
+            operator = self.previous()
+            right = self.and_expr()
+            expr = Logical(expr, operator, right)
+
+        return expr
+
+    def and_expr(self) -> Expr:
+        expr = self.equality()
+
+        while self.match(TokenType.AND):
+            operator = self.previous()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
+
         return expr
 
     def equality(self) -> Expr:
@@ -127,7 +209,7 @@ class Parser:
     def factor(self) -> Expr:
         expr = self.unary()
 
-        while self.match(TokenType.SLASH, TokenType.STAR):
+        while self.match(TokenType.SLASH, TokenType.STAR, TokenType.PERCENT):
             operator = self.previous()
             right = self.unary()
             expr = Binary(expr, operator, right)

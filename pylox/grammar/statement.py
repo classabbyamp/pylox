@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
-from ..util.helpers import to_str, to_repr
+from ..util.helpers import to_str, to_repr, is_truthy
 from . import token, expression, literals
 from ..env import Env
 
@@ -61,3 +61,26 @@ class Var(Stmt):
             val = self.initialiser.eval(env)
 
         env.define(self.name, val)
+
+
+@dataclass
+class If(Stmt):
+    condition: expression.Expr
+    then_branch: Stmt
+    else_branch: Optional[Stmt]
+
+    def eval(self, env: Env):
+        if is_truthy(self.condition.eval(env)):
+            self.then_branch.eval(env)
+        elif self.else_branch is not None:
+            self.else_branch.eval(env)
+
+
+@dataclass
+class While(Stmt):
+    condition: expression.Expr
+    body: Stmt
+
+    def eval(self, env: Env):
+        while is_truthy(self.condition.eval(env)):
+            self.body.eval(env)

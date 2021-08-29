@@ -18,6 +18,7 @@ class TokenType(Enum):
     SEMICOLON = auto()
     SLASH = auto()
     STAR = auto()
+    PERCENT = auto()
 
     # One or two character tokens
     BANG = auto()

@@ -44,6 +44,9 @@ class Binary(Expr):
         elif self.operator.type is TokenType.STAR:
             check_num_operand(self.operator, left, right)
             return left * right
+        elif self.operator.type is TokenType.PERCENT:
+            check_num_operand(self.operator, left, right)
+            return left % right
 
         elif self.operator.type is TokenType.GREATER:
             check_num_operand(self.operator, left, right)
@@ -80,6 +83,28 @@ class Literal(Expr):
 
     def eval(self, env: Env) -> AnyLiteral:
         return self.value
+
+
+@dataclass
+class Logical(Expr):
+    left: Expr
+    operator: Token
+    right: Expr
+
+    def eval(self, env: Env):
+        left = self.left.eval(env)
+
+        if self.operator.type == TokenType.OR:
+            # if left is truthy, we can short-circuit and return left
+            if is_truthy(left):
+                return left
+        # and
+        else:
+            # if left is not truthy, the entire expression won't be truthy, so short-circuit and return left
+            if not is_truthy(left):
+                return left
+
+        return self.right.eval(env)
 
 
 @dataclass

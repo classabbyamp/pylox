@@ -25,6 +25,8 @@ class LoxNil:
         return "nil"
 
     def __eq__(self, o: object) -> bool:
+        if isinstance(o, LoxNil):
+            return True
         return o is None
 
 
