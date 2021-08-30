@@ -6,12 +6,15 @@ from .grammar.token import Token, TokenType
 
 KWDS = {
     "and": TokenType.AND,
+    "break": TokenType.BREAK,
     "class": TokenType.CLASS,
     "else": TokenType.ELSE,
     "false": TokenType.FALSE,
     "for": TokenType.FOR,
     "fun": TokenType.FUN,
     "if": TokenType.IF,
+    "inf": TokenType.INFINITY,
+    "nan": TokenType.NAN,
     "nil": TokenType.NIL,
     "or": TokenType.OR,
     "print": TokenType.PRINT,
@@ -22,8 +25,6 @@ KWDS = {
     "true": TokenType.TRUE,
     "var": TokenType.VAR,
     "while": TokenType.WHILE,
-    "nan": TokenType.NAN,
-    "inf": TokenType.INFINITY,
 }
 
 

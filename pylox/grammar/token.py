@@ -40,17 +40,17 @@ class TokenType(Enum):
 
     # Keywords
     AND = auto()
+    BREAK = auto()
     CLASS = auto()
     ELSE = auto()
     FALSE = auto()
     FUN = auto()
     FOR = auto()
     IF = auto()
-    NIL = auto()
-    NAN = auto()
     INFINITY = auto()
+    NAN = auto()
+    NIL = auto()
     OR = auto()
-
     PRINT = auto()
     REPR = auto()
     RETURN = auto()

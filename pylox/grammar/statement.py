@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from ..util.helpers import to_str, to_repr, is_truthy
+from ..util.exceptions import LoxBreakException
 from . import token, expression, literals
 from ..env import Env
 
@@ -82,5 +83,14 @@ class While(Stmt):
     body: Stmt
 
     def eval(self, env: Env):
-        while is_truthy(self.condition.eval(env)):
-            self.body.eval(env)
+        try:
+            while is_truthy(self.condition.eval(env)):
+                self.body.eval(env)
+        except LoxBreakException:
+            pass
+
+
+@dataclass
+class Break(Stmt):
+    def eval(self, env: Env):
+        raise LoxBreakException

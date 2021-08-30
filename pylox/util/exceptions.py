@@ -37,3 +37,8 @@ class LoxRuntimeError(LoxException):
 
     def __str__(self) -> str:
         return f"[line {self.token.line}] RuntimeError at '{self.token.lexeme}': {self.message}"
+
+
+class LoxBreakException(LoxException):
+    def __init__(self):
+        pass

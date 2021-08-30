@@ -2,7 +2,7 @@ from typing import Optional
 
 from .util.exceptions import LoxSyntaxError
 from .grammar.expression import Expr, Binary, Unary, Literal, Grouping, Variable, Assign, Logical
-from .grammar.statement import Stmt, Print, Repr, Block, Expression, Var, If, While
+from .grammar.statement import Stmt, Print, Repr, Block, Expression, Var, If, While, Break
 from .grammar.token import Token, TokenType
 from .grammar.literals import LoxBool, LoxNil
 
@@ -13,6 +13,7 @@ class Parser:
         self.repl = repl
 
         self.current = 0
+        self.loop_depth = 0
 
     def parse(self) -> list[Stmt]:
         statements = []
@@ -53,10 +54,19 @@ class Parser:
             return self.repr_statement()
         elif self.match(TokenType.WHILE):
             return self.while_statement()
+        elif self.match(TokenType.BREAK):
+            return self.break_statement()
         elif self.match(TokenType.LEFT_BRACE):
             return Block(self.block())
 
         return self.expression_statement()
+
+    def break_statement(self) -> Stmt:
+        if self.loop_depth == 0:
+            raise LoxSyntaxError(self.previous(), "'break' must be inside a loop.")
+
+        self.consume(TokenType.SEMICOLON, "Expected ';' after 'break'.")
+        return Break()
 
     def for_statement(self) -> Stmt:
         self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'.")
@@ -81,28 +91,39 @@ class Parser:
 
         self.consume(TokenType.RIGHT_PAREN, "Expected ')' after for loop declaration.")
 
-        body = self.statement()
+        try:
+            self.loop_depth += 1
 
-        # if there is an increment, do the increment at the end of the loop body
-        if increment is not None:
-            body = Block([body, Expression(increment)])
+            body = self.statement()
 
-        # create the loop
-        body = While(condition, body)
+            # if there is an increment, do the increment at the end of the loop body
+            if increment is not None:
+                body = Block([body, Expression(increment)])
 
-        # if the loop variable needs init, do it before the loop
-        if initialiser is not None:
-            body = Block([initialiser, body])
+            # create the loop
+            body = While(condition, body)
 
-        return body
+            # if the loop variable needs init, do it before the loop
+            if initialiser is not None:
+                body = Block([initialiser, body])
+
+            return body
+        finally:
+            self.loop_depth -= 1
 
     def while_statement(self) -> Stmt:
         self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'while'.")
         condition = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition.")
-        body = self.statement()
 
-        return While(condition, body)
+        try:
+            self.loop_depth += 1
+
+            body = self.statement()
+
+            return While(condition, body)
+        finally:
+            self.loop_depth -= 1
 
     def if_statement(self) -> Stmt:
         self.consume(TokenType.LEFT_PAREN, "Expected '(' after 'if'.")
